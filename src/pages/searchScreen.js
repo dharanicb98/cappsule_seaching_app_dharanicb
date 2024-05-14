@@ -14,6 +14,7 @@ const SearchScreen = () => {
         response.data.saltSuggestions.map((result) => ({
           ...result,
           showAllForms: false,
+          showAllStrength: false,
           selectedForm: "",
           selectedStrength: "",
           selectedPacking: "",
@@ -33,17 +34,30 @@ const SearchScreen = () => {
     );
   };
 
-  const toggleFromButtons = (index) => {
-    setResults((prevResults) =>
-      prevResults.map((result, i) =>
-        i === index
-          ? {
-              ...result,
-              showAllForms: !result.showAllForms,
-            }
-          : result
-      )
-    );
+  const toggleFromButtons = (index, type) => {
+    if (type === "forms") {
+      setResults((prevResults) =>
+        prevResults.map((result, i) =>
+          i === index
+            ? {
+                ...result,
+                showAllForms: !result.showAllForms,
+              }
+            : result
+        )
+      );
+    } else if (type === "strength") {
+      setResults((prevResults) =>
+        prevResults.map((result, i) =>
+          i === index
+            ? {
+                ...result,
+                showAllStrength: !result.showAllStrength,
+              }
+            : result
+        )
+      );
+    }
   };
 
   const handleStrengthSelection = (formIndex, strength) => {
@@ -103,7 +117,7 @@ const SearchScreen = () => {
             type="text"
             id="default-search"
             className="block w-full p-4 ps-10 text-sm bg-white text-gray-900 border-slate-100 border-[0px] rounded-lg  dark:bg-gray-700 dark:border-slate-100 dark:placeholder-gray-400 dark:text-white  dark:focus:border-slate-100"
-            placeholder="Search Any Medicine name here..."
+            placeholder="Search any medicine name here..."
             required
           />
           <button
@@ -140,8 +154,8 @@ const SearchScreen = () => {
                     ))}
                     {result.available_forms.length > 4 && (
                       <button
-                        onClick={() => toggleFromButtons(index)}
-                        className="text-[#5a548c] font-bold"
+                        onClick={() => toggleFromButtons(index, "forms")}
+                        className="text-[#5a548c] font-bold flex justify-end items-end text-right mt-1 mb-3 ml-40"
                       >
                         {result.showAllForms ? "hide.." : "more.."}
                       </button>
@@ -152,24 +166,52 @@ const SearchScreen = () => {
                   <div className="flex gap-4 w-full">
                     <h4 className="font-bold text-gray-900">Strength :</h4>
                     <p className="w-1/2">
-                      {result.salt_forms_json[result.selectedForm] &&
-                        Object.keys(
-                          result.salt_forms_json[result.selectedForm]
-                        ).map((strength) => (
-                          <button
-                            key={strength}
-                            className={
-                              strength === result.selectedStrength
-                                ? "selected border-[2px] text-sm border-[#5a548c] border-dashed bg-transparent mx-1 my-1 font-bold px-2 py-2 text-[#5a548c] text-center rounded"
-                                : "border-[2px] border-[#adacb0] text-sm border-solid bg-transparent px-2 py-2 text-[#adacb0] font-bold mx-1 my-1 text-center rounded"
-                            }
-                            onClick={() =>
-                              handleStrengthSelection(index, strength)
-                            }
-                          >
-                            {strength}
-                          </button>
-                        ))}
+                      {result.showAllStrength
+                        ? Object.keys(
+                            result.salt_forms_json[result.selectedForm]
+                          ).map((strength) => (
+                            <button
+                              key={strength}
+                              className={
+                                strength === result.selectedStrength
+                                  ? "selected border-[2px] text-sm border-[#5a548c] border-dashed bg-transparent mx-1 my-1 font-bold px-2 py-2 text-[#5a548c] text-center rounded"
+                                  : "border-[2px] border-[#adacb0] text-sm border-solid bg-transparent px-2 py-2 text-[#adacb0] font-bold mx-1 my-1 text-center rounded"
+                              }
+                              onClick={() =>
+                                handleStrengthSelection(index, strength)
+                              }
+                            >
+                              {strength}
+                            </button>
+                          ))
+                        : Object.keys(
+                            result.salt_forms_json[result.selectedForm]
+                          )
+                            .slice(0, 4)
+                            .map((strength) => (
+                              <button
+                                key={strength}
+                                className={
+                                  strength === result.selectedStrength
+                                    ? "selected border-[2px] text-sm border-[#5a548c] border-dashed bg-transparent mx-1 my-1 font-bold px-2 py-2 text-[#5a548c] text-center rounded"
+                                    : "border-[2px] border-[#adacb0] text-sm border-solid bg-transparent px-2 py-2 text-[#adacb0] font-bold mx-1 my-1 text-center rounded"
+                                }
+                                onClick={() =>
+                                  handleStrengthSelection(index, strength)
+                                }
+                              >
+                                {strength}
+                              </button>
+                            ))}
+                      {Object.keys(result.salt_forms_json[result.selectedForm])
+                        .length > 4 && (
+                        <button
+                          onClick={() => toggleFromButtons(index, "strength")}
+                          className="text-[#5a548c] font-bold flex justify-end items-end text-right mt-1 mb-3 ml-36"
+                        >
+                          {result.showAllStrength ? "hide.." : "more.."}
+                        </button>
+                      )}
                     </p>
                   </div>
                 )}
@@ -204,11 +246,11 @@ const SearchScreen = () => {
                   </div>
                 )}
               </div>
-              <div className="self-center text-center w-[45%]">
+              <div className="mt-4 md:self-center md:text-center w-[45%]">
                 <p className="text-center text-gray-900 font-bold">
                   Salt {index + 1}
                 </p>
-                <p className="text-gray-500 font-bold text-sm">
+                <p className="text-gray-500 font-bold text-sm self-center mx-3 md:mx-auto">
                   {result.selectedForm
                     ? result.selectedForm
                     : result.available_forms[0]}{" "}
@@ -216,6 +258,13 @@ const SearchScreen = () => {
                   | {result.selectedPacking ? result.selectedPacking : "0mg"}
                 </p>
               </div>
+              {console.log(
+                result.salt_forms_json[result.selectedForm]?.[
+                  result.selectedStrength
+                ]?.[result.selectedPacking],
+                "this is price"
+              )}
+
               {result.selectedPacking &&
               Array.isArray(
                 result.salt_forms_json[result.selectedForm]?.[
@@ -235,7 +284,7 @@ const SearchScreen = () => {
                   ))}
                 </div>
               ) : (
-                <div className="bg-white px-2 py-2  w-[20%] h-[20%] sm:w-[60%] sm:h-[30%] md:w-[20%] md:h-[20%] self-center border-solid border-[2px] rounded border-indigo-200 text-indigo-400 font-bold">
+                <div className="bg-white flex flex-col sm:justify-start sm:items-start md:justify-center md:items-center px-2 py-2 w-[80%] my-4 text-sm sm:w-[60%] md:w-[20%] h-[20%] sm:h-[30%] md:h-[20%] self-center border-solid border-[2px] rounded border-indigo-200 text-indigo-400 font-bold">
                   No stores selling this product near you
                 </div>
               )}
@@ -245,7 +294,7 @@ const SearchScreen = () => {
       </div>
       {noItem && (
         <div className="flex flex-col justify-center h-full items-center">
-          <p className="bg-white px-4 py-4  text-gray-500 dark:text-gray-400 self-center border-solid border-[2px] rounded font-bold">
+          <p className="bg-white px-4 py-4  text-gray-500 dark:text-gray-400 self-center md:mb-56 border-solid border-[2px] rounded font-bold">
             Find Medicine amazing discount
           </p>
         </div>
